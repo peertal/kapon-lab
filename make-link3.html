@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Make links for your class</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, Arial, sans-serif; margin: 0; background: #eef1f5; color: #1a2330; }
+  .page { max-width: 640px; margin: 0 auto; padding: 0 16px 60px; }
+  header { background: #1f3860; color: #fff; padding: 22px; border-radius: 0 0 14px 14px; }
+  header h1 { margin: 0; font-size: 20px; }
+  header p { margin: 6px 0 0; font-size: 14px; opacity: .9; }
+  .card { background: #fff; border: 1px solid #e3e7ec; border-radius: 12px; padding: 18px; margin-top: 16px; }
+  ol { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.55; }
+  ol li { margin-bottom: 6px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 4px; }
+  input { width: 100%; font-size: 15px; padding: 10px 12px; border: 1px solid #c4ccd6; border-radius: 8px; }
+  button { width: 100%; font-size: 16px; font-weight: 600; padding: 13px; margin-top: 18px;
+           border: none; border-radius: 10px; background: #1f3860; color: #fff; cursor: pointer; }
+  .out { margin-top: 18px; }
+  .out h3 { font-size: 13px; margin: 0 0 6px; }
+  .link { word-break: break-all; background: #f2f6fb; border: 1px solid #dde6f1; border-radius: 10px; padding: 12px 14px; font-size: 13px; }
+  .copy { background: #2f6fb0; margin-top: 8px; padding: 10px; }
+  .muted { color: #6b7686; font-size: 13px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Make links for your class</h1>
+    <p>Create the link you give your students, plus your own dashboard link.</p>
+  </header>
+
+  <div class="card">
+    <ol>
+      <li>Make a copy of the activity's response Sheet in your own Drive.</li>
+      <li>Click <strong>Share</strong> on your copy and add <strong>peertal@gmail.com</strong> as <strong>Editor</strong>. This lets the platform write your students' answers into it.</li>
+      <li>Copy your Sheet's link and paste it below.</li>
+      <li>Type your class, click <strong>Create links</strong>, and share the student link with that class.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <label for="sheetlink">Your Sheet link</label>
+    <input id="sheetlink" type="text" placeholder="https://docs.google.com/spreadsheets/d/..../edit">
+
+    <label for="cls">Class</label>
+    <input id="cls" type="text" placeholder="9-5">
+
+    <button onclick="make()">Create links</button>
+
+    <div id="out" class="out hidden">
+      <div style="margin-bottom:16px">
+        <h3>Student link — send this to your class</h3>
+        <div class="link" id="studentLink"></div>
+        <button class="copy" onclick="copyIt('studentLink', this)">Copy student link</button>
+      </div>
+      <div>
+        <h3>Your dashboard link — keep this for yourself</h3>
+        <div class="link" id="dashLink"></div>
+        <button class="copy" onclick="copyIt('dashLink', this)">Copy dashboard link</button>
+      </div>
+      <p class="muted" id="err" style="margin-top:10px"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Set once by the platform owner. Teachers never see these.
+  var ACTIVITY_URL = 'https://peertal.github.io/kapon-lab/falling-object.html';
+  var ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycby6xupRARYxBhvCwTYHYbROfbgBJtE0gnw48Yn45LexKWdKEbXi9R8y2hRUI5qS_7N3/exec';
+
+  function sheetIdFrom(link){
+    var m = link.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    return m ? m[1] : '';
+  }
+
+  function make(){
+    var activity = ACTIVITY_URL;
+    var endpoint = ENDPOINT_URL;
+    var sheetLink = document.getElementById('sheetlink').value.trim();
+    var cls = document.getElementById('cls').value.trim();
+    var out = document.getElementById('out');
+    var err = document.getElementById('err');
+    out.classList.remove('hidden');
+    err.textContent = '';
+
+    var sheetId = sheetIdFrom(sheetLink);
+    if (!sheetId) {
+      document.getElementById('studentLink').textContent = '';
+      document.getElementById('dashLink').textContent = '';
+      err.textContent = 'Please paste a valid Google Sheet link.';
+      return;
+    }
+
+    var studentLink = activity +
+      (activity.indexOf('?') >= 0 ? '&' : '?') +
+      'endpoint=' + encodeURIComponent(endpoint) +
+      '&sheet=' + encodeURIComponent(sheetId) +
+      (cls ? '&class=' + encodeURIComponent(cls) : '');
+
+    var dashLink = endpoint +
+      (endpoint.indexOf('?') >= 0 ? '&' : '?') +
+      'sheet=' + encodeURIComponent(sheetId);
+
+    document.getElementById('studentLink').textContent = studentLink;
+    document.getElementById('dashLink').textContent = dashLink;
+  }
+
+  function copyIt(id, btn){
+    var text = document.getElementById(id).textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(function(){
+      var old = btn.textContent; btn.textContent = 'Copied ✓';
+      setTimeout(function(){ btn.textContent = old; }, 1500);
+    });
+  }
+</script>
+</body>
+</html>
