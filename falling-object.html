@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מדידת זמן נפילה · חוקרים פיזיקה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#14233f; --primary:#1f3a60; --accent:#14b8a6; --accent-d:#0e8f88;
+    --gold:#f5b544; --ink:#17202e; --muted:#5e6b7e; --line:#e4e9f1; --bg:#f4f6fb; --card:#fff;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  body{font-family:"Heebo",system-ui,Arial,sans-serif;margin:0;background:var(--bg);color:var(--ink);line-height:1.6}
+  h1,h2{font-family:"Rubik","Heebo",sans-serif;margin:0;line-height:1.25}
+  .page{max-width:560px;margin:0 auto;padding:0 18px 70px}
+
+  header{background:linear-gradient(160deg,#14233f,#1f3a60);color:#fff;padding:26px 24px;border-radius:0 0 20px 20px;box-shadow:0 10px 30px rgba(20,35,63,.18);position:relative;overflow:hidden}
+  header .drop{position:absolute;inset-inline-end:22px;top:20px;opacity:.9}
+  header h1{font-size:22px;font-weight:800}
+  header p{margin:8px 0 0;font-size:14px;color:#cdd9ea;max-width:34ch}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin-top:18px;box-shadow:0 2px 10px rgba(20,35,63,.05)}
+  .card h2{font-size:16px;color:var(--navy);margin-bottom:3px;display:flex;align-items:center;gap:9px}
+  .card .hint{margin:0 0 14px;font-size:14px;color:var(--muted)}
+  .badge{width:26px;height:26px;border-radius:8px;background:#e6f6f4;color:var(--accent-d);display:inline-flex;align-items:center;justify-content:center;font-family:"Rubik";font-weight:800;font-size:14px}
+
+  label{display:block;font-size:14px;font-weight:700;margin:12px 0 5px;color:var(--ink)}
+  input{width:100%;font-size:16px;padding:12px 14px;border:1px solid #c4ccd6;border-radius:10px;font-family:"Heebo"}
+  input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(20,184,166,.15)}
+  input[type=number]{direction:ltr;text-align:center}
+
+  .trials{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+  .trials label{margin-top:0;text-align:center;font-size:13px;color:var(--muted);font-weight:600}
+  .trials input{padding:12px 6px}
+
+  .submit{width:100%;font-size:17px;font-weight:700;padding:15px;margin-top:20px;border:none;border-radius:12px;background:var(--accent);color:#06312e;cursor:pointer;box-shadow:0 8px 22px rgba(20,184,166,.3);font-family:"Heebo";transition:transform .08s ease}
+  .submit:hover{transform:translateY(-1px)}
+  .submit:disabled{background:#9aa6b6;color:#eef2f7;cursor:not-allowed;box-shadow:none;transform:none}
+
+  .ok{background:#e8f6ec;border:1px solid #b7e0c3;color:#1d6b37;border-radius:12px;padding:16px;margin-top:16px;font-size:15px}
+  .ok strong{display:block;font-size:16px;margin-bottom:4px}
+  .warn{background:#fdf3e6;border:1px solid #f1d8a8;color:#8a5a12;border-radius:11px;padding:12px 14px;margin-top:12px;font-size:14px}
+
+  .setup summary{cursor:pointer;color:var(--muted);font-size:13px;font-weight:600}
+  .setup input{margin-top:6px;direction:ltr;text-align:left;font-size:14px}
+  .setup .hint{margin-top:10px}
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <svg class="drop" width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <circle cx="12" cy="9" r="6" fill="#14b8a6"/>
+      <path d="M12 16 V33" stroke="#9fe7df" stroke-width="2.5" stroke-dasharray="2 5" stroke-linecap="round"/>
+      <circle cx="12" cy="34" r="3.5" fill="#9fe7df"/>
+    </svg>
+    <h1>מדידת זמן נפילה</h1>
+    <p>שחררו את העצם מאותו גובה כמה פעמים, ומדדו כמה זמן לקחה כל נפילה.</p>
+  </header>
+
+  <div class="card">
+    <h2><span class="badge">1</span> מי אתם?</h2>
+    <div style="height:8px"></div>
+    <label for="student">שם מלא</label>
+    <input id="student" type="text" autocomplete="name" placeholder="לדוגמה: נועה לוי">
+    <label for="cls">כיתה</label>
+    <input id="cls" type="text" placeholder="לדוגמה: י׳3">
+  </div>
+
+  <div class="card">
+    <h2><span class="badge">2</span> המדידות שלכם</h2>
+    <p class="hint">הקלידו את זמן הנפילה בכל ניסוי, בשניות. אפשר להשאיר ניסוי ריק אם לא ביצעתם אותו.</p>
+    <div class="trials">
+      <div><label for="t1">ניסוי 1</label><input id="t1" type="number" step="0.01" min="0" inputmode="decimal"></div>
+      <div><label for="t2">ניסוי 2</label><input id="t2" type="number" step="0.01" min="0" inputmode="decimal"></div>
+      <div><label for="t3">ניסוי 3</label><input id="t3" type="number" step="0.01" min="0" inputmode="decimal"></div>
+      <div><label for="t4">ניסוי 4</label><input id="t4" type="number" step="0.01" min="0" inputmode="decimal"></div>
+      <div><label for="t5">ניסוי 5</label><input id="t5" type="number" step="0.01" min="0" inputmode="decimal"></div>
+    </div>
+    <label for="notes">הערות (רשות)</label>
+    <input id="notes" type="text" placeholder="משהו ששמתם לב אליו במהלך הניסוי">
+  </div>
+
+  <button id="submitBtn" class="submit" onclick="submit()">שליחה למורה</button>
+  <div id="msg"></div>
+
+  <details class="setup card">
+    <summary>הגדרות (למורה / לבדיקה בלבד)</summary>
+    <p class="hint">בדרך כלל הקישור מהמורה ממלא את השדות האלה אוטומטית. לבדיקה מקומית, הדביקו את כתובת המערכת ואת מזהה הגיליון.</p>
+    <label for="endpoint">כתובת המערכת (Web app URL)</label>
+    <input id="endpoint" type="text" placeholder="https://script.google.com/macros/s/..../exec">
+    <label for="sheet">מזהה הגיליון (Sheet ID)</label>
+    <input id="sheet" type="text" placeholder="1AbC...המזהה הארוך מכתובת הגיליון">
+  </details>
+</div>
+
+<script>
+  // ההגדרות מגיעות מהקישור של המורה: ?endpoint=...&sheet=...&class=...
+  var params = new URLSearchParams(location.search);
+  if (params.get('endpoint')) document.getElementById('endpoint').value = params.get('endpoint');
+  if (params.get('sheet'))    document.getElementById('sheet').value = params.get('sheet');
+  if (params.get('class'))    document.getElementById('cls').value = params.get('class');
+
+  function val(id){ return document.getElementById(id).value.trim(); }
+  function num(id){ var v = parseFloat(document.getElementById(id).value); return isNaN(v) ? null : v; }
+
+  function submit(){
+    var msg = document.getElementById('msg');
+    var endpoint = val('endpoint');
+    var sheetId = val('sheet');
+    var student = val('student');
+    var times = ['t1','t2','t3','t4','t5'].map(num).filter(function(v){ return v !== null && v > 0; });
+
+    if (!student) { msg.innerHTML = '<div class="warn">נא להזין שם קודם.</div>'; return; }
+    if (times.length === 0) { msg.innerHTML = '<div class="warn">נא להזין לפחות זמן נפילה אחד.</div>'; return; }
+    if (!endpoint || !sheetId) { msg.innerHTML = '<div class="warn">לא הוגדר יעד לשליחה. פתחו את הקישור שהמורה נתן לכם, או מלאו את מקטע ההגדרות.</div>'; return; }
+
+    var payload = {
+      sheetId: sheetId,
+      student: student,
+      "class": val('cls'),
+      t1: num('t1'), t2: num('t2'), t3: num('t3'), t4: num('t4'), t5: num('t5'),
+      notes: val('notes')
+    };
+
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'שולח…';
+
+    fetch(endpoint, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).then(function(){
+      btn.textContent = 'נשלח ✓';
+      msg.innerHTML = '<div class="ok"><strong>נשלח למורה בהצלחה.</strong>' +
+        escapeHtml(payload.student) + (payload["class"] ? ' · ' + escapeHtml(payload["class"]) : '') +
+        '<br>הזמנים שנשלחו: ' + times.map(function(t){ return t + ' שנ׳'; }).join(', ') + '</div>';
+    }).catch(function(){
+      btn.disabled = false; btn.textContent = 'שליחה למורה';
+      msg.innerHTML = '<div class="warn">השליחה נכשלה. בדקו את החיבור לאינטרנט ואת הקישור.</div>';
+    });
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
+</script>
+</body>
+</html>
