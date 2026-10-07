@@ -130,20 +130,37 @@
     var btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = 'שולח…';
 
-    fetch(endpoint, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    }).then(function(){
+    function showOk(){
       btn.textContent = 'נשלח ✓';
       msg.innerHTML = '<div class="ok"><strong>נשלח למורה בהצלחה.</strong>' +
         escapeHtml(payload.student) + (payload["class"] ? ' · ' + escapeHtml(payload["class"]) : '') +
         '<br>הזמנים שנשלחו: ' + times.map(function(t){ return t + ' שנ׳'; }).join(', ') + '</div>';
-    }).catch(function(){
-      btn.disabled = false; btn.textContent = 'שליחה למורה';
-      msg.innerHTML = '<div class="warn">השליחה נכשלה. בדקו את החיבור לאינטרנט ואת הקישור.</div>';
-    });
+    }
+
+    var body = JSON.stringify(payload);
+
+    // Fast path: sendBeacon queues the request and returns immediately,
+    // so the student sees confirmation without waiting for the server.
+    var sent = false;
+    try {
+      var blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
+      sent = navigator.sendBeacon(endpoint, blob);
+    } catch (e) { sent = false; }
+
+    if (sent) {
+      showOk();
+    } else {
+      // Fallback for browsers without sendBeacon.
+      fetch(endpoint, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: body
+      }).then(showOk).catch(function(){
+        btn.disabled = false; btn.textContent = 'שליחה למורה';
+        msg.innerHTML = '<div class="warn">השליחה נכשלה. בדקו את החיבור לאינטרנט ואת הקישור.</div>';
+      });
+    }
   }
 
   function escapeHtml(s){ return String(s).replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
