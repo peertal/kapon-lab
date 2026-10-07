@@ -104,6 +104,12 @@
     <h2>יצירת הקישורים</h2>
     <p class="sub">הדביקו את קישור הגיליון שלכם, הקלידו שם כיתה, וצרו קישורים.</p>
 
+    <label for="name">שם המורה</label>
+    <input id="name" type="text" placeholder="לדוגמה: טל פאר" autocomplete="name">
+
+    <label for="email">מייל <span style="font-weight:400;color:var(--muted);font-size:13px">— לשם נשלח את הקישורים (רשות)</span></label>
+    <input id="email" type="email" placeholder="you@example.com" autocomplete="email" dir="ltr" style="direction:ltr;text-align:left">
+
     <label for="sheetlink">קישור הגיליון שלכם</label>
     <input id="sheetlink" type="text" placeholder="https://docs.google.com/spreadsheets/d/..../edit" dir="ltr">
 
@@ -113,6 +119,7 @@
     <button class="btn create" onclick="make()">צרו קישורים</button>
 
     <div id="out" class="out hidden">
+      <div id="emailNote" style="display:none;background:#e8f6ec;border:1px solid #b7e0c3;color:#1d6b37;border-radius:12px;padding:14px 16px;margin-top:14px;font-size:14px">שלחנו את הקישורים גם למייל שלכם ✓</div>
       <div class="result">
         <h3>
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#1f3a60" stroke-width="2"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
@@ -181,6 +188,26 @@
       'sheet=' + encodeURIComponent(sheetId);
 
     document.getElementById('studentLink').textContent = studentLink;
+    fireEmail(sheetId, cls);
+  }
+
+  // Best-effort: ask the server to email the teacher the links (version A).
+  function fireEmail(sheetId, cls){
+    var name = document.getElementById('name').value.trim();
+    var email = document.getElementById('email').value.trim();
+    document.getElementById('emailNote').style.display = 'none';
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return;
+    var cb = 'mailcb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+    window[cb] = function(res){
+      try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+      if (res && res.ok) document.getElementById('emailNote').style.display = 'block';
+    };
+    var params = { action:'emaillinks', name:name, email:email, 'class':cls, sheet:sheetId, callback:cb, _:Date.now() };
+    var q = Object.keys(params).map(function(k){ return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+    var s = document.createElement('script');
+    s.src = ENDPOINT_URL + (ENDPOINT_URL.indexOf('?') >= 0 ? '&' : '?') + q;
+    s.onerror = function(){ /* email is best-effort; the request still reaches the server */ };
+    document.body.appendChild(s);
   }
 
   function openDash(){
