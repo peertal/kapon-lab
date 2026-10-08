@@ -68,10 +68,10 @@
 <body>
 <div class="page">
   <header>
-    <a class="back" href="index.html">&rarr; חזרה לדף הבית</a>
+    <a class="back" href="index.html#activities">&rarr; חזרה לדף הבית</a>
     <h1>הגדרת פעילות לכיתה</h1>
     <p>מסלול א׳ — הגיליון נשמר ב‑Drive שלכם, ואתם משתפים אותנו כדי שהנתונים יגיעו.</p>
-    <span class="pill">פעילות: מדידת זמן נפילה</span>
+    <span class="pill" id="actPill">פעילות: מדידת זמן נפילה</span>
   </header>
 
   <div class="card">
@@ -146,10 +146,20 @@
 
 <script>
   // ===== מוגדר פעם אחת ע"י מנהל הפלטפורמה — המורים לא רואים את זה =====
-  var ACTIVITY_URL   = 'https://peertal.github.io/kapon-lab/falling-object.html';
+  var PAGES_BASE     = 'https://peertal.github.io/kapon-lab/';
   var ENDPOINT_URL   = 'https://script.google.com/macros/s/AKfycbz_0_nGhIt3SluffWik3kV6xPIL7r2C5ZHBV-GSfqpWUrC2g6jHhgBtfx2IzMwZgaSp/exec';
   var TEMPLATE_COPY  = 'https://docs.google.com/spreadsheets/d/1CzdGEotg4wZr0owJcgo2VuygFq4aayGcbD4C-lFYfPY/copy';
   // ====================================================================
+
+  // The activity comes from the home page link: make-link-?.html?activity=...
+  var ACTIVITIES = {
+    'falling-object':        { he: 'מדידת זמן נפילה',                      page: 'falling-object.html' },
+    'falling-object-guided': { he: 'מדידת זמן נפילה — מהלך פעילות מובנה', page: 'falling-object-guided.html' }
+  };
+  var ACTIVITY = new URLSearchParams(location.search).get('activity');
+  if (!ACTIVITIES[ACTIVITY]) ACTIVITY = 'falling-object';
+  document.getElementById('actPill').textContent = 'פעילות: ' + ACTIVITIES[ACTIVITY].he;
+  var ACTIVITY_URL = PAGES_BASE + ACTIVITIES[ACTIVITY].page;
 
   document.getElementById('copySheetBtn').href = TEMPLATE_COPY;
 
@@ -185,7 +195,8 @@
 
     dashUrl = ENDPOINT_URL +
       (ENDPOINT_URL.indexOf('?') >= 0 ? '&' : '?') +
-      'sheet=' + encodeURIComponent(sheetId);
+      'sheet=' + encodeURIComponent(sheetId) +
+      (ACTIVITY === 'falling-object' ? '' : '&activity=' + ACTIVITY);
 
     document.getElementById('studentLink').textContent = studentLink;
     fireEmail(sheetId, cls);
@@ -202,7 +213,7 @@
       try { delete window[cb]; } catch(e){ window[cb] = undefined; }
       if (res && res.ok) document.getElementById('emailNote').style.display = 'block';
     };
-    var params = { action:'emaillinks', name:name, email:email, 'class':cls, sheet:sheetId, callback:cb, _:Date.now() };
+    var params = { action:'emaillinks', activity:ACTIVITY, name:name, email:email, 'class':cls, sheet:sheetId, callback:cb, _:Date.now() };
     var q = Object.keys(params).map(function(k){ return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
     var s = document.createElement('script');
     s.src = ENDPOINT_URL + (ENDPOINT_URL.indexOf('?') >= 0 ? '&' : '?') + q;

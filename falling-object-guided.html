@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מדידת זמן נפילה · חוקרים פיזיקה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#14233f; --primary:#1f3a60; --accent:#14b8a6; --accent-d:#0e8f88;
+    --gold:#f5b544; --ink:#17202e; --muted:#5e6b7e; --line:#e4e9f1; --bg:#f4f6fb; --card:#fff;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  body{font-family:"Heebo",system-ui,Arial,sans-serif;margin:0;background:var(--bg);color:var(--ink);line-height:1.6}
+  h1,h2,h3{font-family:"Rubik","Heebo",sans-serif;margin:0;line-height:1.25}
+  button{font-family:inherit}
+  .page{max-width:560px;margin:0 auto;padding:0 18px 70px}
+
+  header{background:linear-gradient(160deg,#14233f,#1f3a60);color:#fff;padding:24px 24px 22px;border-radius:0 0 20px 20px;box-shadow:0 10px 30px rgba(20,35,63,.18);position:relative;overflow:hidden}
+  header .drop{position:absolute;inset-inline-end:22px;top:20px;opacity:.9}
+  header .kick{font-size:12.5px;font-weight:700;color:#8fe6dd;letter-spacing:.02em}
+  header h1{font-size:22px;font-weight:800}
+  header p{margin:6px 0 0;font-size:14px;color:#cdd9ea;max-width:34ch}
+
+  /* stepper */
+  .steps{display:flex;align-items:center;margin:18px 4px 0;gap:0}
+  .st{display:flex;align-items:center;gap:8px;background:none;border:none;padding:4px 2px;cursor:pointer;color:var(--muted);font-size:13.5px;font-weight:700}
+  .st:disabled{cursor:default}
+  .st .n{width:28px;height:28px;border-radius:50%;background:#e3e9f2;color:var(--muted);display:flex;align-items:center;justify-content:center;font-family:"Rubik";font-weight:800;font-size:14px;flex:0 0 auto}
+  .st.on{color:var(--navy)} .st.on .n{background:var(--navy);color:#fff}
+  .st.done .n{background:var(--accent);color:#06312e}
+  .steps .ln{flex:1;height:2px;background:#dfe6ef;margin:0 8px;min-width:12px}
+  .steps .ln.done{background:var(--accent)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin-top:16px;box-shadow:0 2px 10px rgba(20,35,63,.05)}
+  .card h2{font-size:19px;font-weight:800;color:var(--navy);margin-bottom:8px}
+  .card p{margin:0 0 12px;font-size:16px}
+  .card p.lead{font-size:16.5px}
+  .card .hint{margin:0 0 14px;font-size:14px;color:var(--muted)}
+  .art{display:block;width:100%;height:auto;border-radius:12px;margin-bottom:16px;background:linear-gradient(180deg,#e9f3fb,#f4f9f8)}
+  .idea{background:#eef7f6;border:1px solid #bfe6e1;border-radius:12px;padding:12px 14px;font-size:15.5px;color:#0b4f4a;margin:0 0 12px}
+  .idea b{font-weight:800}
+
+  ol.how{margin:0 0 6px;padding:0;list-style:none;counter-reset:h}
+  ol.how li{counter-increment:h;position:relative;padding-inline-start:36px;margin-bottom:10px;font-size:15.5px}
+  ol.how li::before{content:counter(h);position:absolute;inset-inline-start:0;top:1px;width:24px;height:24px;border-radius:8px;background:#e6f6f4;color:var(--accent-d);font-family:"Rubik";font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+  .kit{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+  .kit span{font-size:13.5px;font-weight:700;color:var(--primary);background:#eef2f8;border-radius:999px;padding:4px 12px}
+
+  label{display:block;font-size:14px;font-weight:700;margin:14px 0 5px;color:var(--ink)}
+  input,textarea{width:100%;font-size:16px;padding:12px 14px;border:1px solid #c4ccd6;border-radius:10px;font-family:"Heebo";color:var(--ink);background:#fff}
+  textarea{resize:vertical;min-height:92px;line-height:1.5}
+  input:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(20,184,166,.15)}
+  input[type=number]{direction:ltr;text-align:center}
+  input[type=number]{-moz-appearance:textfield;appearance:textfield}
+  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .big{display:flex;align-items:center;gap:12px}
+  .big input{font-size:30px;font-family:"Rubik";font-weight:700;padding:12px;max-width:190px}
+  .big span{font-size:16px;color:var(--muted);font-weight:700}
+  .cnt{font-size:12.5px;color:var(--muted);text-align:end;margin-top:4px}
+
+  .q{font-family:"Rubik";font-size:19px;font-weight:700;color:var(--navy);line-height:1.45;margin:4px 0 16px}
+  .yn{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .yn button{font-size:20px;font-weight:800;padding:18px 10px;border-radius:14px;border:2px solid #cfd8e4;background:#fff;color:var(--primary);cursor:pointer;transition:transform .08s ease}
+  .yn button:hover{transform:translateY(-1px)}
+  .yn button.sel{border-color:var(--navy);background:var(--navy);color:#fff;box-shadow:0 8px 20px rgba(20,35,63,.2)}
+  .pause{display:flex;gap:10px;align-items:flex-start;background:#fff8e8;border:1px solid #f1d8a8;border-radius:12px;padding:11px 14px;font-size:14.5px;color:#7a4f0d;margin-bottom:14px}
+
+  .go{width:100%;font-size:17px;font-weight:700;padding:15px;margin-top:20px;border:none;border-radius:12px;background:var(--accent);color:#06312e;cursor:pointer;box-shadow:0 8px 22px rgba(20,184,166,.3);transition:transform .08s ease}
+  .go:hover{transform:translateY(-1px)}
+  .go:disabled{background:#9aa6b6;color:#eef2f7;cursor:not-allowed;box-shadow:none;transform:none}
+  .back{display:block;margin:14px auto 0;background:none;border:none;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+  .warn{background:#fdf3e6;border:1px solid #f1d8a8;color:#8a5a12;border-radius:11px;padding:12px 14px;margin-top:12px;font-size:14.5px}
+  .ok{background:#e8f6ec;border:1px solid #b7e0c3;color:#1d6b37;border-radius:14px;padding:18px;font-size:15.5px}
+  .ok strong{display:block;font-family:"Rubik";font-size:19px;margin-bottom:4px}
+  .sum{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 0 0;font-size:15px}
+  .sum dt{color:var(--muted)} .sum dd{margin:0;font-weight:700}
+  .next{border-style:dashed;background:#fbfcfe}
+  .next h2{font-size:16px}
+  .ghost{width:100%;font-size:15px;font-weight:700;padding:12px;border-radius:11px;border:1px solid #cbd6e3;background:#fff;color:var(--primary);cursor:pointer}
+  .trials{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+  .trials label{margin-top:0;text-align:center;font-size:13px;color:var(--muted);font-weight:600}
+  .trials input{padding:12px 4px}
+  .preview{background:#fdf3e6;border:1px solid #f1d8a8;color:#7a4f0d;border-radius:12px;padding:10px 14px;margin-top:16px;font-size:14px}
+
+  .setup summary{cursor:pointer;color:var(--muted);font-size:13px;font-weight:600}
+  .setup input{margin-top:6px;direction:ltr;text-align:left;font-size:14px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <svg class="drop" width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <circle cx="12" cy="9" r="6" fill="#14b8a6"/>
+      <path d="M12 16 V33" stroke="#9fe7df" stroke-width="2.5" stroke-dasharray="2 5" stroke-linecap="round"/>
+      <circle cx="12" cy="34" r="3.5" fill="#9fe7df"/>
+    </svg>
+    <div class="kick">חוקרים פיזיקה · מהלך פעילות מובנה</div>
+    <h1>מדידת זמן נפילה</h1>
+    <p>כמה זמן לוקח לכדור ליפול מגובה של מטר אחד?</p>
+  </header>
+
+  <div id="previewNote" class="preview hidden">תצוגה מקדימה — התשובות לא נשלחות לשום מקום. כדי להפעיל בכיתה, פתחו את הקישור שהמורה שלח.</div>
+
+  <nav class="steps" id="steps" aria-label="שלבי הפעילות">
+    <button class="st" id="st1" onclick="goTo(1)"><span class="n">1</span>רקע</button><span class="ln" id="ln1"></span>
+    <button class="st" id="st2" onclick="goTo(2)"><span class="n">2</span>מדידה</button><span class="ln" id="ln2"></span>
+    <button class="st" id="st3" onclick="goTo(3)"><span class="n">3</span>ציפייה</button>
+  </nav>
+
+  <!-- 1 · background -->
+  <section id="v1" class="hidden">
+    <div class="card">
+      <svg class="art" viewBox="0 0 520 210" role="img" aria-label="אדם עומד בראש צוק ומשחרר אבן; לצידו שעון עצר">
+        <path d="M0 210 V86 H150 Q168 86 172 104 L196 210 Z" fill="#1f3a60"/>
+        <path d="M0 86 H150 Q160 86 166 94" stroke="#14b8a6" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M196 210 H520 V196 Q420 186 330 196 Q250 204 196 196 Z" fill="#cfe0ee"/>
+        <circle cx="122" cy="48" r="9" fill="#14233f"/>
+        <path d="M122 58 V86 M122 66 L150 74" stroke="#14233f" stroke-width="5" stroke-linecap="round"/>
+        <path d="M190 84 V178" stroke="#14b8a6" stroke-width="3" stroke-dasharray="3 9" stroke-linecap="round"/>
+        <circle cx="190" cy="76" r="7" fill="#f5b544"/>
+        <circle cx="190" cy="186" r="5" fill="#f5b544" opacity=".45"/>
+        <path d="M232 84 H250 M241 84 V186 M232 186 H250" stroke="#5e6b7e" stroke-width="2" stroke-linecap="round"/>
+        <text x="262" y="142" font-family="Rubik,Heebo,sans-serif" font-size="26" font-weight="800" fill="#1f3a60">?</text>
+        <g transform="translate(410 96)">
+          <rect x="-7" y="-58" width="14" height="10" rx="3" fill="#1f3a60"/>
+          <circle r="46" fill="#fff" stroke="#1f3a60" stroke-width="6"/>
+          <path d="M0 -34 V-28 M34 0 H28 M0 34 V28 M-34 0 H-28" stroke="#9aa6b6" stroke-width="3" stroke-linecap="round"/>
+          <path d="M0 0 L20 -20" stroke="#f5b544" stroke-width="5" stroke-linecap="round"/>
+          <circle r="5" fill="#1f3a60"/>
+        </g>
+      </svg>
+      <h2>כמה גבוה הצוק?</h2>
+      <p class="lead">דמיינו שאתם בטיול השנתי, עומדים בראש צוק, ורוצים לדעת מה הגובה שלו. סרט מדידה אין לכם — אבל אבן קטנה קל למצוא, ובטלפון שבכיס יש שעון עצר.</p>
+      <div class="idea"><b>הרעיון:</b> משחררים עצם, מודדים כמה זמן נמשכת הנפילה — ומהזמן לומדים על הגובה. זו <b>מדידה עקיפה</b>: מודדים דבר אחד (זמן) כדי לדעת דבר אחר (גובה).</div>
+      <p>כדי שנוכל לסמוך על «מכשיר המדידה» הזה, צריך קודם לבדוק עד כמה אפשר לסמוך על מדידת הזמן עצמה. מתחילים מגובה שאנחנו מכירים: <b>מטר אחד</b>.</p>
+      <button class="go" onclick="goTo(2)">מתחילים למדוד &larr;</button>
+    </div>
+  </section>
+
+  <!-- 2 · first single measurement -->
+  <section id="v2" class="hidden">
+    <div class="card">
+      <h2>מדידה ראשונה</h2>
+      <div class="kit"><span>עובדים בזוגות</span><span>סרגל באורך מטר</span><span>שעון עצר</span><span>כדור קטן או משקולת</span></div>
+      <ol class="how">
+        <li>החזיקו את הכדור בגובה של <b>מטר אחד</b> מעל הרצפה.</li>
+        <li>שחררו אותו, ומדדו בשעון העצר כמה זמן עבר מרגע השחרור ועד הפגיעה ברצפה.</li>
+        <li>מודדים <b>פעם אחת בלבד</b>, ורושמים כאן את מה שהתקבל.</li>
+      </ol>
+
+      <label for="student">שמות חברי הצוות</label>
+      <input id="student" type="text" autocomplete="off" placeholder="לדוגמה: נועה ויואב">
+      <label for="cls">כיתה</label>
+      <input id="cls" type="text" placeholder="לדוגמה: י׳3">
+      <label for="t1">זמן הנפילה שמדדתם</label>
+      <div class="big"><input id="t1" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"><span>שניות</span></div>
+
+      <button class="go" id="send2" onclick="sendMeasure()">שליחה למורה והמשך &larr;</button>
+      <div id="msg2"></div>
+      <button class="back" onclick="goTo(1)">חזרה לרקע</button>
+    </div>
+  </section>
+
+  <!-- 3 · expectation before measuring again -->
+  <section id="v3" class="hidden">
+    <div class="card">
+      <h2>רגע לפני שמודדים שוב</h2>
+      <div class="pause"><span aria-hidden="true">✋</span><span>עדיין לא משחררים את הכדור פעם נוספת. קודם חושבים ועונים.</span></div>
+      <p class="q">אם תשחררו את הכדור שוב מאותו הגובה, האם אתם מצפים למדוד את אותו זמן עבור הנפילה?</p>
+      <div class="yn" role="group" aria-label="התשובה שלכם">
+        <button id="yes" onclick="pick('yes')" aria-pressed="false">כן</button>
+        <button id="no" onclick="pick('no')" aria-pressed="false">לא</button>
+      </div>
+      <label for="reason">הסבירו את תשובתכם</label>
+      <textarea id="reason" maxlength="200" placeholder="משפט או שניים: למה אתם חושבים כך?" oninput="count()"></textarea>
+      <div class="cnt"><span id="cnt">0</span>/200</div>
+
+      <button class="go" id="send3" onclick="sendPredict()">שליחה למורה</button>
+      <div id="msg3"></div>
+      <button class="back" onclick="goTo(2)">חזרה למדידה</button>
+    </div>
+  </section>
+
+  <!-- done · wait for the class discussion -->
+  <section id="v4" class="hidden">
+    <div class="card">
+      <div class="ok">
+        <strong>התשובות נשלחו ✓</strong>
+        עכשיו מביטים אל הלוח — נראה מה מדדו ומה חשבו שאר הצוותים.
+      </div>
+      <dl class="sum">
+        <dt>הצוות</dt><dd id="sumName"></dd>
+        <dt>המדידה שלכם</dt><dd id="sumT"></dd>
+        <dt>הציפייה שלכם</dt><dd id="sumP"></dd>
+      </dl>
+      <button class="back" onclick="goTo(3)">תיקון התשובה</button>
+    </div>
+
+    <div class="card next">
+      <h2>בהמשך השיעור: מדידות חוזרות</h2>
+      <p class="hint">פותחים את החלק הזה רק לפי הנחיית המורה.</p>
+      <button class="ghost" id="openRep" onclick="openRepeats()">פתיחת המדידות החוזרות</button>
+
+      <div id="rep" class="hidden">
+        <p class="hint" style="margin-top:4px">ערכו 4 חזרות נוספות מאותו גובה (מטר אחד), והקלידו את כל הזמנים בשניות.</p>
+        <div class="trials">
+          <div><label for="r1">מדידה 1</label><input id="r1" type="number" step="0.01" min="0" inputmode="decimal"></div>
+          <div><label for="r2">מדידה 2</label><input id="r2" type="number" step="0.01" min="0" inputmode="decimal"></div>
+          <div><label for="r3">מדידה 3</label><input id="r3" type="number" step="0.01" min="0" inputmode="decimal"></div>
+          <div><label for="r4">מדידה 4</label><input id="r4" type="number" step="0.01" min="0" inputmode="decimal"></div>
+          <div><label for="r5">מדידה 5</label><input id="r5" type="number" step="0.01" min="0" inputmode="decimal"></div>
+        </div>
+        <label for="notes">הערות (רשות)</label>
+        <input id="notes" type="text" maxlength="200" placeholder="משהו ששמתם לב אליו במהלך המדידות">
+        <button class="go" id="sendR" onclick="sendRepeats()">שליחת החזרות למורה</button>
+        <div id="msgR"></div>
+      </div>
+    </div>
+  </section>
+
+  <details class="setup card">
+    <summary>הגדרות (למורה / לבדיקה בלבד)</summary>
+    <p class="hint" style="margin-top:10px">בדרך כלל הקישור מהמורה ממלא את השדות האלה אוטומטית. לבדיקה מקומית, הדביקו את כתובת המערכת ואת מזהה הגיליון.</p>
+    <label for="endpoint">כתובת המערכת (Web app URL)</label>
+    <input id="endpoint" type="text" placeholder="https://script.google.com/macros/s/..../exec">
+    <label for="sheet">מזהה הגיליון (Sheet ID)</label>
+    <input id="sheet" type="text" placeholder="1AbC...המזהה הארוך מכתובת הגיליון">
+    <button class="back" onclick="resetAll()">איפוס התשובות במכשיר הזה</button>
+  </details>
+</div>
+
+<script>
+  // ההגדרות מגיעות מהקישור של המורה: ?endpoint=...&sheet=...&class=...
+  var params = new URLSearchParams(location.search);
+  function el(id){ return document.getElementById(id); }
+  function val(id){ return el(id).value.trim(); }
+  function num(id){ var v = parseFloat(String(el(id).value).replace(',', '.')); return (isNaN(v) || v <= 0) ? null : v; }
+  function escapeHtml(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function warn(id, text){ el(id).innerHTML = text ? '<div class="warn">' + text + '</div>' : ''; }
+
+  if (params.get('endpoint')) el('endpoint').value = params.get('endpoint');
+  if (params.get('sheet'))    el('sheet').value = params.get('sheet');
+
+  // What this team already did is remembered on the device, so a refresh doesn't lose their place.
+  var KEY = 'kaponlab:falling-object:' + (params.get('sheet') || 'preview');
+  var st = { step: 1, teamId: '', student: '', cls: '', t1: null, predict: '', reason: '', sent: {}, trials: [], notes: '' };
+  try { var saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved && typeof saved === 'object') for (var k in saved) st[k] = saved[k]; } catch (e) {}
+  if (!st.sent || typeof st.sent !== 'object') st.sent = {};
+  if (!st.teamId) st.teamId = 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  if (!st.cls && params.get('class')) st.cls = params.get('class');
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+
+  function isLive(){ return !!(val('endpoint') && val('sheet')); }
+  if (!isLive()) el('previewNote').classList.remove('hidden');
+
+  // ---------- navigation ----------
+  function goTo(n){
+    if (n > 2 && st.t1 === null) n = 2;            // no skipping ahead of the measurement
+    if (n > 3 && !st.predict) n = 3;
+    st.step = n; save(); show();
+    window.scrollTo(0, 0);
+  }
+  function show(){
+    for (var i = 1; i <= 4; i++) el('v' + i).classList.toggle('hidden', i !== st.step);
+    var reached = st.predict && st.sent.predict ? 4 : st.t1 !== null ? 3 : 2;
+    for (var j = 1; j <= 3; j++) {
+      var b = el('st' + j);
+      b.className = 'st' + (j === st.step ? ' on' : '') + ((j < st.step || (st.step === 4)) ? ' done' : '');
+      b.disabled = j > reached;
+      if (j < 3) el('ln' + j).className = 'ln' + (j < st.step ? ' done' : '');
+    }
+    el('student').value = st.student || '';
+    el('cls').value = st.cls || '';
+    if (st.t1 !== null) el('t1').value = st.t1;
+    el('reason').value = st.reason || ''; count();
+    paintPick();
+    if (st.step === 4) {
+      el('sumName').textContent = st.student + (st.cls ? ' · ' + st.cls : '');
+      el('sumT').textContent = st.t1 + ' שניות';
+      el('sumP').textContent = st.predict === 'yes' ? 'כן — נמדוד אותו זמן' : 'לא — נמדוד זמן אחר';
+      if (st.sent.repeats) openRepeats();
+    }
+  }
+
+  // ---------- sending ----------
+  // sendBeacon queues the request and returns at once, so nobody waits on the server.
+  function send(payload, done, fail){
+    if (!isLive()) { done(); return; }             // preview: walk through without sending
+    payload.sheetId = val('sheet');
+    payload.student = st.student;
+    payload['class'] = st.cls;
+    payload.teamId = st.teamId;
+    var body = JSON.stringify(payload), endpoint = val('endpoint'), sent = false;
+    try { sent = navigator.sendBeacon(endpoint, new Blob([body], { type: 'text/plain;charset=utf-8' })); } catch (e) { sent = false; }
+    if (sent) { done(); return; }
+    fetch(endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: body })
+      .then(done).catch(fail);
+  }
+  function busy(btnId, on, label){ var b = el(btnId); b.disabled = on; b.textContent = on ? 'שולח…' : label; }
+  var FAIL = 'השליחה נכשלה. בדקו את החיבור לאינטרנט ונסו שוב.';
+
+  // 2 — the first single measurement
+  var askedTwice = null;
+  function sendMeasure(){
+    var name = val('student'), t = num('t1');
+    if (!name) { warn('msg2', 'נא לכתוב את שמות חברי הצוות.'); return; }
+    if (t === null) { warn('msg2', 'נא להקליד את זמן הנפילה שמדדתם, בשניות.'); return; }
+    if (t > 5 && askedTwice !== t) {
+      askedTwice = t;
+      warn('msg2', 'הקלדתם ' + t + ' שניות. ודאו שהזמן רשום בשניות, עם נקודה עשרונית. אם זה נכון — לחצו שוב על הכפתור.');
+      return;
+    }
+    warn('msg2', '');
+    st.student = name; st.cls = val('cls'); st.t1 = t; save();
+    busy('send2', true);
+    send({ stage: 'measure', t1: t }, function(){
+      busy('send2', false, 'שליחה למורה והמשך ←');
+      st.sent.measure = true; goTo(3);
+    }, function(){ busy('send2', false, 'שליחה למורה והמשך ←'); warn('msg2', FAIL); });
+  }
+
+  // 3 — expectation + reasoning
+  function pick(v){ st.predict = v; save(); paintPick(); warn('msg3', ''); }
+  function paintPick(){
+    ['yes', 'no'].forEach(function(v){
+      el(v).className = st.predict === v ? 'sel' : '';
+      el(v).setAttribute('aria-pressed', st.predict === v ? 'true' : 'false');
+    });
+  }
+  function count(){ el('cnt').textContent = el('reason').value.length; }
+  function sendPredict(){
+    var reason = val('reason');
+    if (!st.predict) { warn('msg3', 'בחרו «כן» או «לא».'); return; }
+    if (reason.length < 3) { warn('msg3', 'כתבו בקצרה למה אתם חושבים כך.'); return; }
+    warn('msg3', '');
+    st.reason = reason; save();
+    busy('send3', true);
+    send({ stage: 'predict', predict: st.predict, reason: reason }, function(){
+      busy('send3', false, 'שליחה למורה');
+      st.sent.predict = true; goTo(4);
+    }, function(){ busy('send3', false, 'שליחה למורה'); warn('msg3', FAIL); });
+  }
+
+  // later in the lesson — repeated measurements
+  function openRepeats(){
+    el('rep').classList.remove('hidden'); el('openRep').classList.add('hidden');
+    var tr = (st.trials && st.trials.length) ? st.trials : [st.t1];
+    for (var i = 1; i <= 5; i++) if (el('r' + i).value === '' && tr[i - 1] !== undefined && tr[i - 1] !== null) el('r' + i).value = tr[i - 1];
+    if (st.notes && !el('notes').value) el('notes').value = st.notes;
+    if (st.sent.repeats) el('msgR').innerHTML = '<div class="ok" style="margin-top:14px"><strong>החזרות נשלחו ✓</strong>אפשר לתקן ולשלוח שוב — המורה יראה את הגרסה האחרונה.</div>';
+  }
+  function sendRepeats(){
+    var all = [1, 2, 3, 4, 5].map(function(i){ return num('r' + i); });
+    var filled = all.filter(function(v){ return v !== null; });
+    if (filled.length < 2) { warn('msgR', 'נא להקליד לפחות שתי מדידות.'); return; }
+    st.trials = all; st.notes = val('notes'); save();
+    busy('sendR', true);
+    send({ stage: 'repeats', t1: all[0], t2: all[1], t3: all[2], t4: all[3], t5: all[4], notes: st.notes }, function(){
+      busy('sendR', false, 'שליחת החזרות למורה');
+      st.sent.repeats = true; save();
+      el('msgR').innerHTML = '<div class="ok" style="margin-top:14px"><strong>החזרות נשלחו ✓</strong>הזמנים שנשלחו: ' +
+        filled.map(function(t){ return escapeHtml(t) + ' שנ׳'; }).join(', ') + '</div>';
+    }, function(){ busy('sendR', false, 'שליחת החזרות למורה'); warn('msgR', FAIL); });
+  }
+
+  function resetAll(){
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    location.reload();
+  }
+
+  // keep what was typed even if the team moves between steps before sending
+  [['student', 'student'], ['cls', 'cls'], ['reason', 'reason']].forEach(function(p){
+    el(p[0]).addEventListener('input', function(){ st[p[1]] = el(p[0]).value.trim(); save(); });
+  });
+
+  if (st.step < 1 || st.step > 4) st.step = 1;
+  show();
+</script>
+</body>
+</html>
