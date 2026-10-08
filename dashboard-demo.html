@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מדידת זמן נפילה — לוח הכיתה (הדגמה)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#14233f; --primary:#1f3a60; --accent:#14b8a6; --accent-d:#0e8f88; --gold:#f5b544;
+    --ink:#17202e; --muted:#5e6b7e; --line:#e4e9f1; --grid:#edf1f6; --bg:#f4f6fb; --card:#fff;
+    /* data colors — checked for colour-blind separation */
+    --yes:#2563b8; --no:#d97f0e; --data:#0e8f88;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{direction:rtl;font-family:"Heebo",system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;font-size:16px}
+  h1,h2,h3{font-family:"Rubik","Heebo",sans-serif;margin:0;line-height:1.25}
+  button{font-family:inherit}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px 60px}
+
+  /* header */
+  header{background:linear-gradient(160deg,#14233f,#1f3a60);color:#fff}
+  .head{max-width:1120px;margin:0 auto;padding:20px 20px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .head .mark{width:38px;height:38px;flex:0 0 auto}
+  .head .ttl{flex:1 1 260px;min-width:0}
+  .head .kick{font-size:13px;font-weight:700;color:#8fe6dd;letter-spacing:.02em}
+  .head h1{font-size:23px;font-weight:800}
+  .head .pill{display:inline-block;margin-inline-start:10px;font-family:"Heebo";font-size:13px;font-weight:700;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);padding:2px 11px;border-radius:999px;vertical-align:middle}
+  .head .tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .hbtn{font-size:14px;font-weight:700;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);padding:8px 14px;border-radius:10px;cursor:pointer}
+  .hbtn:hover{background:rgba(255,255,255,.18)}
+  .hbtn .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#7b8aa3;margin-inline-end:7px}
+  .hbtn.on .dot{background:#5eead4;box-shadow:0 0 0 3px rgba(94,234,212,.25)}
+  #status{font-size:12.5px;color:#b9c6da;min-width:8ch}
+
+  .demo{background:#fdf3e6;border:1px solid #f1d8a8;color:#7a4f0d;border-radius:12px;padding:10px 14px;margin-top:16px;font-size:14px}
+
+  /* progress strip */
+  .strip{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 18px;margin-top:18px;display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+  .count{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+  .count b{font-family:"Rubik";font-size:26px;font-weight:800;color:var(--navy)}
+  .count span{font-size:13.5px;color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 320px}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-size:13px;background:#f3f6fa;border:1px solid var(--line);border-radius:999px;padding:3px 11px}
+  .pip{width:8px;height:8px;border-radius:50%;border:1.5px solid #b4bfcd;background:transparent}
+  .pip.on{background:var(--accent-d);border-color:var(--accent-d)}
+  .legendline{font-size:12px;color:var(--muted);flex-basis:100%;margin-top:-6px}
+  select{font-family:inherit;font-size:14px;padding:6px 10px;border-radius:9px;border:1px solid #c4ccd6;background:#fff}
+
+  /* tabs */
+  .tabs{display:flex;gap:6px;margin:20px 0 4px;flex-wrap:wrap}
+  .tab{font-size:15px;font-weight:700;color:var(--muted);background:transparent;border:1px solid transparent;padding:9px 18px;border-radius:11px;cursor:pointer}
+  .tab small{font-weight:500;opacity:.8;margin-inline-start:6px}
+  .tab:hover{background:#e9eef6}
+  .tab.on{background:var(--navy);color:#fff}
+
+  /* panels */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px;margin-top:16px;box-shadow:0 2px 10px rgba(20,35,63,.05)}
+  .phead{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  .pnum{flex:0 0 auto;width:32px;height:32px;border-radius:10px;background:#e6f6f4;color:var(--accent-d);font-family:"Rubik";font-weight:800;display:flex;align-items:center;justify-content:center}
+  .ptitle{flex:1 1 260px;min-width:0}
+  .ptitle h2{font-size:20px;font-weight:800;color:var(--navy)}
+  .ptitle p{margin:3px 0 0;font-size:14.5px;color:var(--muted)}
+  .ptitle p.q{font-size:16px;color:var(--ink);font-weight:500}
+  .link{background:none;border:none;color:var(--primary);font-weight:700;font-size:13.5px;cursor:pointer;padding:6px 4px;text-decoration:underline;text-underline-offset:3px}
+  .toggle{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--muted);cursor:pointer;user-select:none;padding:6px 4px}
+  .toggle input{width:16px;height:16px;accent-color:var(--accent-d)}
+  .pbody{margin-top:18px}
+
+  .cover{border:1.5px dashed #c9d3e0;border-radius:14px;background:#f8fafd;padding:26px 18px;text-align:center;margin-top:16px}
+  .cover .n{font-size:15px;color:var(--muted);margin-bottom:12px}
+  .reveal{font-size:16px;font-weight:700;background:var(--accent);color:#06312e;border:none;border-radius:12px;padding:12px 26px;cursor:pointer;box-shadow:0 8px 20px rgba(20,184,166,.28)}
+  .reveal:hover{transform:translateY(-1px)}
+  .empty{padding:26px 10px;text-align:center;color:var(--muted);font-size:15px}
+
+  /* 1 — prediction split */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
+  .side .lab{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:700}
+  .side.no{text-align:end}
+  .side.no .lab{justify-content:flex-end}
+  .sw{width:14px;height:14px;border-radius:4px;flex:0 0 auto}
+  .sw.yes{background:var(--yes)} .sw.no{background:var(--no)}
+  .pct{font-family:"Rubik";font-size:clamp(40px,7vw,64px);font-weight:800;color:var(--navy);line-height:1.05}
+  .sub{font-size:14.5px;color:var(--muted)}
+  .bar{display:flex;gap:2px;height:28px;margin-top:12px}
+  .seg{height:100%;min-width:0;transition:flex-grow .5s ease}
+  .seg.yes{background:var(--yes);border-radius:0 8px 8px 0}
+  .seg.no{background:var(--no);border-radius:8px 0 0 8px}
+  .seg.only{border-radius:8px}
+
+  /* plots */
+  .plot{position:relative;direction:ltr}
+  .plot svg{display:block;overflow:visible}
+  .axis-title{text-align:center;font-size:13px;color:var(--muted);margin-top:2px}
+  .caption{margin-top:12px;font-size:15px;color:var(--ink)}
+  .caption b{font-family:"Rubik";font-weight:800;color:var(--navy)}
+  #tip{position:fixed;z-index:20;pointer-events:none;background:var(--navy);color:#fff;font-size:13px;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(20,35,63,.25);display:none;white-space:nowrap}
+  #tip b{font-weight:700}
+
+  /* 3 — reasons */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .col h3{display:flex;align-items:center;gap:9px;font-size:16.5px;font-weight:800;color:var(--navy);padding-bottom:10px;border-bottom:2px solid var(--line)}
+  .col h3 .cnt{margin-inline-start:auto;font-family:"Heebo";font-size:13px;font-weight:700;color:var(--muted);background:#f1f4f9;border-radius:999px;padding:1px 10px}
+  .reason{position:relative;background:#fafbfd;border:1px solid var(--line);border-inline-start:4px solid var(--yes);border-radius:12px;padding:13px 15px;margin-top:10px;cursor:pointer;transition:box-shadow .15s ease,background .15s ease}
+  .col.no .reason{border-inline-start-color:var(--no)}
+  .reason:hover{box-shadow:0 4px 14px rgba(20,35,63,.08)}
+  .reason .txt{font-size:17px;line-height:1.5;overflow-wrap:anywhere}
+  .reason .who{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .reason.pin{background:#fff8e8;border-color:#f1d8a8;box-shadow:0 0 0 2px var(--gold)}
+  .reason.pin::after{content:"נבחר לדיון";position:absolute;inset-inline-end:10px;top:-10px;background:var(--gold);color:#5a3d00;font-size:11px;font-weight:800;padding:1px 9px;border-radius:999px}
+  .none{color:var(--muted);font-size:14px;padding:14px 2px}
+  .hint{font-size:13px;color:var(--muted);margin-top:12px}
+
+  /* 4 — teacher board */
+  .board-in{display:flex;gap:10px;margin-top:4px}
+  .board-in input{flex:1;font-family:inherit;font-size:16px;padding:12px 14px;border:1px solid #c4ccd6;border-radius:11px}
+  .board-in input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(20,184,166,.15)}
+  .add{font-size:15px;font-weight:700;background:var(--primary);color:#fff;border:none;border-radius:11px;padding:0 20px;cursor:pointer}
+  .src{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .srcchip{display:inline-flex;align-items:center;gap:10px;background:#eef7f6;border:1px solid #bfe6e1;color:#0b4f4a;font-size:17px;font-weight:700;border-radius:12px;padding:8px 14px}
+  .srcchip button{border:none;background:none;color:#5b8f8a;font-size:18px;line-height:1;cursor:pointer;padding:0 2px}
+  .srcchip button:hover{color:#a23b3b}
+  #saved{font-size:12.5px;color:var(--muted);margin-top:8px;min-height:1.2em}
+
+  /* repeats */
+  .tiles{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;min-width:170px}
+  .tile .l{font-size:13px;color:var(--muted)}
+  .tile .v{font-family:"Rubik";font-size:25px;font-weight:800;color:var(--navy);margin-top:2px}
+  .tile .v small{font-family:"Heebo";font-size:14px;font-weight:500;color:var(--muted)}
+  .key{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13.5px;color:var(--muted);margin-top:12px}
+  .key span{display:inline-flex;align-items:center;gap:7px}
+  .rep{display:grid;grid-template-columns:160px minmax(0,1fr);margin-top:8px}
+  .names div{height:34px;line-height:34px;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-inline-end:12px}
+  .meanpill{position:absolute;top:2px;background:var(--navy);color:#fff;font-size:12.5px;font-weight:700;padding:2px 10px;border-radius:999px;white-space:nowrap;direction:rtl}
+
+  /* table */
+  .tablewrap{overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:12px}
+  table{width:100%;border-collapse:collapse;background:#fff;font-size:14px}
+  th,td{padding:9px 12px;text-align:start;border-bottom:1px solid #eef1f4;vertical-align:top}
+  th{background:#eef1f6;font-weight:700;white-space:nowrap}
+  td.n{direction:ltr;text-align:end;font-variant-numeric:tabular-nums;white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  .csv{font-size:14px;font-weight:700;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:9px 16px;cursor:pointer}
+
+  @media (max-width:720px){
+    .cols{grid-template-columns:1fr}
+    .panel{padding:18px 16px}
+    .rep{grid-template-columns:104px minmax(0,1fr)}
+    .names div{font-size:13.5px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="head">
+    <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <rect x="1" y="1" width="30" height="30" rx="8" fill="#14b8a6"/>
+      <circle cx="10" cy="22" r="2.4" fill="#06312e"/><circle cx="16" cy="17" r="2.4" fill="#06312e"/><circle cx="22" cy="10" r="2.4" fill="#06312e"/>
+    </svg>
+    <div class="ttl">
+      <div class="kick" id="kick">חוקרים פיזיקה · לוח הכיתה</div>
+      <h1>מדידת זמן נפילה<span class="pill" id="clsPill" style="display:none"></span></h1>
+    </div>
+    <div class="tools">
+      <span id="status"></span>
+      <button class="hbtn on" id="liveBtn" onclick="toggleLive()" title="כשהעדכון החי פועל, הלוח מתרענן לבד כל כמה שניות"><span class="dot"></span><span id="liveTxt">עדכון חי</span></button>
+      <button class="hbtn" onclick="load(true)">רענון</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="demoNote" class="demo" style="display:none">תצוגת הדגמה — הנתונים כאן לדוגמה בלבד, ושום דבר לא נשמר.</div>
+  <div id="fatal"></div>
+
+  <div class="strip" id="strip" style="display:none"></div>
+
+  <div class="tabs" id="tabs" style="display:none">
+    <button class="tab on" data-tab="discuss" onclick="setTab('discuss')">דיון כיתתי<small>שלבים 2–4</small></button>
+    <button class="tab" data-tab="repeats" onclick="setTab('repeats')">חזרות ופיזור</button>
+    <button class="tab" data-tab="table" onclick="setTab('table')">טבלת נתונים</button>
+  </div>
+
+  <div id="view"></div>
+</div>
+<div id="tip"></div>
+
+<script>
+  var SHEET_ID = '__SHEET_ID__';
+  var HAS_GAS = (typeof google !== 'undefined' && google.script && google.script.run);
+  var NO_ID = (!SHEET_ID || SHEET_ID.indexOf('_SHEET_ID_') !== -1);
+  var DEMO = !HAS_GAS;
+  // Which activity this class runs. The guided one opens on the class-discussion view;
+  // the plain one opens on the repeated measurements, as the first version did.
+  var ACTIVITY = '__ACTIVITY__';
+  if (ACTIVITY.indexOf('_ACTIVITY_') !== -1) ACTIVITY = (DEMO && /activity=falling-object(&|$)/.test(location.search)) ? 'falling-object' : 'falling-object-guided';
+  var GUIDED = ACTIVITY === 'falling-object-guided';
+
+  var S = {
+    rows: [], teams: [], board: [], boardLoaded: false,
+    tab: GUIDED ? 'discuss' : 'repeats', cls: '', live: true, sig: null,
+    reveal: { predict: false, measure: false, reasons: false },
+    showNames: false, showMeans: true, pins: {}
+  };
+  var QUESTION = 'אם תשחררו את הכדור שוב מאותו הגובה, האם אתם מצפים למדוד את אותו זמן עבור הנפילה?';
+
+  // ---------- helpers ----------
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function num(s){
+    if (s === null || s === undefined) return null;
+    s = String(s).trim().replace(',', '.');
+    if (!s) return null;
+    var n = Number(s);
+    return (isFinite(n) && n > 0) ? n : null;
+  }
+  function fmt(n, d){ return n.toFixed(d === undefined ? 2 : d); }
+  function plural(n, one, many){ return n === 1 ? one : n + ' ' + many; }
+  function teamsWord(n){ return plural(n, 'צוות אחד', 'צוותים'); }
+  function stageKey(s){
+    s = String(s || '').trim();
+    if (s === 'measure' || s === 'מדידה ראשונה') return 'measure';
+    if (s === 'predict' || s === 'ציפייה') return 'predict';
+    if (s === 'repeats' || s === 'חזרות') return 'repeats';
+    return '';
+  }
+  function predKey(s){
+    s = String(s || '').trim().toLowerCase();
+    if (s === 'כן' || s === 'yes') return 'yes';
+    if (s === 'לא' || s === 'no') return 'no';
+    return '';
+  }
+
+  // One entry per team. The Sheet is an append-only log (one row per send);
+  // here the rows of one team are merged, and the latest send of each stage wins.
+  // Columns: 0 time · 1 team · 2 class · 3-7 t1..t5 · 8 notes · 9 predict · 10 reason · 11 stage · 12 team id
+  function buildTeams(rows){
+    var map = {}, order = [];
+    S.anyStaged = false;
+    rows.forEach(function(r, i){
+      var name = String(r[1] || '').trim(), cls = String(r[2] || '').trim();
+      var st = stageKey(r[11]), id = String(r[12] || '').trim();
+      if (st) S.anyStaged = true;
+      var ts = [3,4,5,6,7].map(function(j){ return num(r[j]); });
+      var p = predKey(r[9]);
+      if (!name && !p && !ts.some(function(v){ return v !== null; })) return;   // blank row
+      var key = id ? 'id:' + id
+              : st ? 'n:' + name.toLowerCase().replace(/\s+/g, ' ') + '|' + cls
+              : 'row:' + i;                                    // rows from the older student page
+      var t = map[key];
+      if (!t) { t = map[key] = { key: key, name: name, cls: cls, first: null, predict: '', reason: '', trials: null, notes: '' }; order.push(key); }
+      if (name) t.name = name;
+      if (cls) t.cls = cls;
+      if (st === 'measure') {
+        if (ts[0] !== null) t.first = ts[0];
+      } else if (st === 'predict') {
+        if (p) { t.predict = p; t.reason = String(r[10] || '').trim(); }
+      } else {
+        var vals = ts.filter(function(v){ return v !== null; });
+        if (vals.length) { t.trials = vals; if (t.first === null && ts[0] !== null) t.first1 = ts[0]; }
+        var nt = String(r[8] || '').trim(); if (nt) t.notes = nt;
+        if (p) { t.predict = p; t.reason = String(r[10] || '').trim(); }
+      }
+    });
+    return order.map(function(k){
+      var t = map[k];
+      if (t.first === null && t.first1 !== undefined) t.first = t.first1;
+      if (t.trials) {
+        t.min = Math.min.apply(null, t.trials); t.max = Math.max.apply(null, t.trials);
+        t.mean = t.trials.reduce(function(a, b){ return a + b; }, 0) / t.trials.length;
+      }
+      return t;
+    });
+  }
+  function visibleTeams(){ return S.teams.filter(function(t){ return !S.cls || t.cls === S.cls; }); }
+
+  // ---------- loading ----------
+  var timer = null;
+  function load(manual){
+    if (DEMO) { onData(demoData()); return; }
+    if (NO_ID) {
+      $('fatal').innerHTML = '<div class="panel"><div class="empty">לא התקבל מזהה גיליון. פתחו את קישור הדשבורד שקיבלתם בעמוד ההגדרה (…/exec?sheet=…).</div></div>';
+      return;
+    }
+    if (manual) $('status').textContent = 'טוען…';
+    google.script.run.withSuccessHandler(onData).withFailureHandler(onErr).getDashboardData(SHEET_ID);
+  }
+  function onErr(e){
+    $('status').textContent = 'שגיאת טעינה';
+    if (!S.sig) $('fatal').innerHTML = '<div class="panel"><div class="empty" style="color:#a23b3b">לא הצלחנו לקרוא את הגיליון.<br>' + esc(e && e.message ? e.message : e) + '</div></div>';
+  }
+  function onData(d){
+    $('fatal').innerHTML = '';
+    var values = (d && d.rows) || [];
+    var rows = values.slice(1);
+    if (!S.boardLoaded) { S.board = (d && d.board) || []; S.boardLoaded = true; }
+    var now = new Date();
+    $('status').textContent = 'עודכן ' + ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2) + ':' + ('0' + now.getSeconds()).slice(-2);
+    var sig = JSON.stringify(rows);
+    if (sig === S.sig) return;            // nothing new — leave the screen untouched
+    S.sig = sig; S.rows = rows; S.teams = buildTeams(rows);
+    render();
+  }
+  function toggleLive(){
+    S.live = !S.live;
+    $('liveBtn').className = 'hbtn' + (S.live ? ' on' : '');
+    $('liveTxt').textContent = S.live ? 'עדכון חי' : 'עדכון מושהה';
+    schedule();
+  }
+  function schedule(){
+    if (timer) { clearInterval(timer); timer = null; }
+    if (S.live && !DEMO && !NO_ID) timer = setInterval(function(){ if (!document.hidden) load(false); }, 8000);
+  }
+
+  // ---------- render ----------
+  function setTab(t){ S.tab = t; render(); }
+  // The discussion view belongs to the guided activity — or to any class whose students used the guided page.
+  function hasDiscuss(){ return GUIDED || S.anyStaged; }
+  function render(){
+    if (!hasDiscuss() && S.tab === 'discuss') S.tab = 'repeats';
+    $('tabs').style.display = 'flex';
+    document.querySelector('[data-tab=discuss]').style.display = hasDiscuss() ? '' : 'none';
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(b){ b.className = 'tab' + (b.getAttribute('data-tab') === S.tab ? ' on' : ''); });
+    renderStrip();
+    if (S.tab === 'discuss') renderDiscuss();
+    else if (S.tab === 'repeats') renderRepeats();
+    else renderTable();
+  }
+
+  function renderStrip(){
+    var all = S.teams;
+    var classes = []; all.forEach(function(t){ if (t.cls && classes.indexOf(t.cls) < 0) classes.push(t.cls); });
+    if (S.cls && classes.indexOf(S.cls) < 0) S.cls = '';
+    var pill = $('clsPill');
+    var shown = S.cls || (classes.length === 1 ? classes[0] : '');
+    pill.style.display = shown ? 'inline-block' : 'none'; pill.textContent = shown;
+
+    var teams = visibleTeams();
+    var measured = teams.filter(function(t){ return t.first !== null; }).length;
+    var answered = teams.filter(function(t){ return t.predict; }).length;
+    var h = '', guided = hasDiscuss();
+    if (guided) {
+      h += '<div class="count"><b>' + measured + '</b><span>צוותים מדדו</span></div>';
+      h += '<div class="count"><b>' + answered + '</b><span>ענו על שאלת הציפייה</span></div>';
+    } else {
+      h += '<div class="count"><b>' + teams.length + '</b><span>' + (teams.length === 1 ? 'הגשה' : 'הגשות') + '</span></div>';
+    }
+    if (classes.length > 1) {
+      h += '<label style="font-size:13.5px;color:var(--muted)">כיתה: <select onchange="S.cls=this.value;render()"><option value="">הכול</option>' +
+        classes.map(function(c){ return '<option' + (c === S.cls ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') + '</select></label>';
+    }
+    if (teams.length) {
+      h += '<div class="chips">' + teams.map(function(t){
+        return '<span class="chip">' + esc(t.name || 'ללא שם') + (guided ? '<span class="pip' + (t.first !== null ? ' on' : '') + '"></span><span class="pip' + (t.predict ? ' on' : '') + '"></span>' : '') + '</span>';
+      }).join('') + '</div>';
+      if (guided) h += '<div class="legendline">ליד כל צוות: עיגול ראשון — מדידה ראשונה נשלחה · עיגול שני — תשובה לשאלת הציפייה נשלחה</div>';
+    } else {
+      h += '<div class="chips" style="color:var(--muted);font-size:14.5px">עדיין לא התקבלו תשובות. הן יופיעו כאן ברגע שהצוותים ישלחו.</div>';
+    }
+    var el = $('strip'); el.innerHTML = h; el.style.display = 'flex';
+  }
+
+  function cover(count, label, key){
+    return '<div class="cover"><div class="n">' + count + ' ' + label + ' · מוסתר מהכיתה</div>' +
+      '<button class="reveal" onclick="S.reveal.' + key + '=true;render()">הצגה לכיתה</button></div>';
+  }
+  function hideLink(key){ return '<button class="link" onclick="S.reveal.' + key + '=false;render()">הסתרה</button>'; }
+
+  function renderDiscuss(){
+    var teams = visibleTeams();
+    var yes = teams.filter(function(t){ return t.predict === 'yes'; });
+    var no  = teams.filter(function(t){ return t.predict === 'no'; });
+    var answered = yes.length + no.length;
+    var measured = teams.filter(function(t){ return t.first !== null; });
+    var h = '';
+
+    // 1 — what did we expect
+    h += '<section class="panel"><div class="phead"><div class="pnum">1</div><div class="ptitle"><h2>מה ציפינו?</h2><p class="q">«' + esc(QUESTION) + '»</p></div>' +
+         (S.reveal.predict && answered ? hideLink('predict') : '') + '</div>';
+    if (!answered) h += '<div class="empty">עדיין אין תשובות לשאלה.</div>';
+    else if (!S.reveal.predict) h += cover(answered, answered === 1 ? 'צוות ענה' : 'צוותים ענו', 'predict');
+    else {
+      var py = Math.round(yes.length / answered * 100), pn = 100 - py;
+      h += '<div class="pbody"><div class="split">' +
+        '<div class="side yes"><div class="lab"><span class="sw yes"></span>כן — אותו זמן</div><div class="pct">' + py + '%</div><div class="sub">' + teamsWord(yes.length) + '</div></div>' +
+        '<div class="side no"><div class="lab">לא — זמן אחר<span class="sw no"></span></div><div class="pct">' + pn + '%</div><div class="sub">' + teamsWord(no.length) + '</div></div>' +
+        '</div><div class="bar" role="img" aria-label="כן ' + py + '%, לא ' + pn + '%">' +
+        (yes.length ? '<div class="seg yes' + (no.length ? '' : ' only') + '" style="flex:' + yes.length + ' 1 0"></div>' : '') +
+        (no.length ? '<div class="seg no' + (yes.length ? '' : ' only') + '" style="flex:' + no.length + ' 1 0"></div>' : '') +
+        '</div></div>';
+    }
+    h += '</section>';
+
+    // 2 — what did we measure
+    h += '<section class="panel"><div class="phead"><div class="pnum">2</div><div class="ptitle"><h2>מה מדדנו?</h2><p>כל נקודה היא המדידה הראשונה של צוות אחד — זמן הנפילה מגובה של מטר אחד.</p></div>' +
+         (S.reveal.measure && measured.length ? hideLink('measure') : '') + '</div>';
+    if (!measured.length) h += '<div class="empty">עדיין אין מדידות.</div>';
+    else if (!S.reveal.measure) h += cover(measured.length, measured.length === 1 ? 'צוות מדד' : 'צוותים מדדו', 'measure');
+    else {
+      var distinct = {}; measured.forEach(function(t){ distinct[fmt(t.first, 2)] = 1; });
+      var nd = Object.keys(distinct).length;
+      h += '<div class="pbody"><div class="plot" id="dotplot"></div><div class="axis-title">זמן הנפילה (שניות)</div>' +
+           '<div class="caption"><b>' + teamsWord(measured.length) + '</b> מדדו את אותה נפילה, והתקבלו <b>' + plural(nd, 'ערך אחד', 'ערכים שונים') + '</b>.</div></div>';
+    }
+    h += '</section>';
+
+    // 3 — why
+    var withReason = teams.filter(function(t){ return t.predict && t.reason; });
+    h += '<section class="panel"><div class="phead"><div class="pnum">3</div><div class="ptitle"><h2>למה? הנימוקים שלנו</h2><p>לחיצה על נימוק מסמנת אותו לדיון.</p></div>' +
+         (S.reveal.reasons && withReason.length ? '<label class="toggle"><input type="checkbox"' + (S.showNames ? ' checked' : '') + ' onchange="S.showNames=this.checked;render()">שמות הצוותים</label>' + hideLink('reasons') : '') + '</div>';
+    if (!withReason.length) h += '<div class="empty">עדיין אין נימוקים.</div>';
+    else if (!S.reveal.reasons) h += cover(withReason.length, withReason.length === 1 ? 'נימוק התקבל' : 'נימוקים התקבלו', 'reasons');
+    else {
+      h += '<div class="pbody"><div class="cols">' + reasonCol('yes', 'כן — מצפים לאותו זמן', yes) + reasonCol('no', 'לא — מצפים לזמן אחר', no) + '</div>';
+      var silent = answered - withReason.length;
+      if (silent > 0) h += '<div class="hint">' + (silent === 1 ? 'צוות אחד ענה בלי לנמק.' : silent + ' צוותים ענו בלי לנמק.') + '</div>';
+      h += '</div>';
+    }
+    h += '</section>';
+
+    // 4 — teacher board
+    h += '<section class="panel"><div class="phead"><div class="pnum">4</div><div class="ptitle"><h2>מה יכול לגרום לשוני בין מדידות חוזרות?</h2><p>רושמים כאן את הרעיונות שעולים מהכיתה. הרשימה נשמרת בגיליון של הכיתה.</p></div></div>' +
+         '<div class="pbody"><div class="board-in"><input id="srcIn" type="text" maxlength="80" placeholder="רעיון שעלה בדיון…" onkeydown="if(event.key===\'Enter\')addSource()"><button class="add" onclick="addSource()">הוספה</button></div>' +
+         '<div class="src" id="srcList"></div><div id="saved"></div></div></section>';
+
+    // keep whatever the teacher is typing when the board refreshes itself
+    var keep = $('srcIn') ? $('srcIn').value : '';
+    var typing = document.activeElement && document.activeElement.id === 'srcIn';
+    $('view').innerHTML = h;
+    if (keep) $('srcIn').value = keep;
+    if (typing) $('srcIn').focus();
+    renderSources();
+    if ($('dotplot')) drawDots($('dotplot'), measured);
+  }
+
+  function reasonCol(kind, title, list){
+    var items = list.filter(function(t){ return t.reason; });
+    var h = '<div class="col ' + kind + '"><h3><span class="sw ' + kind + '"></span>' + title + '<span class="cnt">' + list.length + '</span></h3>';
+    if (!items.length) h += '<div class="none">' + (list.length ? 'אין נימוקים כתובים.' : 'אף צוות לא בחר בתשובה הזו.') + '</div>';
+    items.forEach(function(t){
+      h += '<div class="reason' + (S.pins[t.key] ? ' pin' : '') + '" data-key="' + esc(t.key) + '" onclick="togglePin(this)"><div class="txt">' + esc(t.reason) + '</div>' +
+           (S.showNames ? '<div class="who">' + esc(t.name) + '</div>' : '') + '</div>';
+    });
+    return h + '</div>';
+  }
+  function togglePin(el){
+    var k = el.getAttribute('data-key');
+    S.pins[k] = !S.pins[k];
+    el.className = 'reason' + (S.pins[k] ? ' pin' : '');
+  }
+
+  // ---------- teacher board ----------
+  function renderSources(){
+    var el = $('srcList'); if (!el) return;
+    el.innerHTML = S.board.map(function(s, i){
+      return '<span class="srcchip">' + esc(s) + '<button title="הסרה" aria-label="הסרה" onclick="removeSource(' + i + ')">×</button></span>';
+    }).join('');
+  }
+  function addSource(){
+    var inp = $('srcIn'); var v = inp.value.trim();
+    if (!v) return;
+    if (S.board.indexOf(v) < 0) S.board.push(v);
+    inp.value = ''; inp.focus();
+    renderSources(); saveBoard();
+  }
+  function removeSource(i){ S.board.splice(i, 1); renderSources(); saveBoard(); }
+  function saveBoard(){
+    var el = $('saved'); if (!el) return;
+    if (DEMO) { el.textContent = ''; return; }
+    el.textContent = 'שומר…';
+    google.script.run
+      .withSuccessHandler(function(){ if ($('saved')) $('saved').textContent = 'נשמר בגיליון ✓'; })
+      .withFailureHandler(function(){ if ($('saved')) $('saved').textContent = 'השמירה נכשלה — הרשימה נשארת על המסך בלבד.'; })
+      .saveBoard(SHEET_ID, S.board);
+  }
+
+  // ---------- charts ----------
+  // Round tick values, never below zero.
+  function scale(min, max, target){
+    if (min === max) { min -= 0.1; max += 0.1; }
+    var span = max - min, raw = span / target;
+    var pow = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+    var f = raw / pow;
+    var step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * pow;
+    var lo = Math.floor((min - span * 0.05) / step + 1e-9) * step; if (lo < 0) lo = 0;
+    var hi = Math.ceil((max + span * 0.05) / step - 1e-9) * step;
+    var ticks = [];
+    for (var v = lo; v <= hi + step / 2; v += step) ticks.push(Number(v.toFixed(6)));
+    var dec = Math.max(0, -Math.floor(Math.log(step) / Math.LN10 + 1e-9));
+    return { lo: lo, hi: hi, ticks: ticks, dec: dec };
+  }
+  function axis(sc, X, y, top){
+    var s = '';
+    sc.ticks.forEach(function(tv){
+      var gx = X(tv);
+      s += '<line x1="' + gx + '" y1="' + top + '" x2="' + gx + '" y2="' + y + '" stroke="#edf1f6"/>';
+      s += '<text x="' + gx + '" y="' + (y + 20) + '" font-size="13" text-anchor="middle" fill="#5e6b7e">' + fmt(tv, sc.dec) + '</text>';
+    });
+    s += '<line x1="' + X(sc.lo) + '" y1="' + y + '" x2="' + X(sc.hi) + '" y2="' + y + '" stroke="#c4ccd6"/>';
+    return s;
+  }
+
+  // Step 4: one axis, one dot per team. Equal or near-equal values stack upward.
+  function drawDots(el, teams){
+    var W = el.clientWidth || 700, padX = 26, R = 9, D = 2 * R + 3;
+    var vals = teams.map(function(t){ return t.first; });
+    var sc = scale(Math.min.apply(null, vals), Math.max.apply(null, vals), W < 520 ? 4 : 7);
+    function X(v){ return padX + (v - sc.lo) / (sc.hi - sc.lo) * (W - 2 * padX); }
+    var pts = teams.map(function(t){ return { t: t, x: X(t.first) }; }).sort(function(a, b){ return a.x - b.x; });
+    var levels = [], maxL = 0;
+    pts.forEach(function(p){
+      var l = 0;
+      while (levels[l] !== undefined && p.x - levels[l] < D - 0.5) l++;
+      levels[l] = p.x; p.l = l; if (l > maxL) maxL = l;
+    });
+    var top = 10, base = top + (maxL + 1) * D + 4, H = base + 30;
+    var s = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="המדידה הראשונה של כל צוות על ציר הזמן" style="font-family:Heebo,system-ui,Arial,sans-serif">';
+    s += axis(sc, X, base, top);
+    pts.forEach(function(p){
+      var cy = base - R - 4 - p.l * D;
+      s += '<circle cx="' + p.x + '" cy="' + cy + '" r="' + R + '" fill="#0e8f88" stroke="#fff" stroke-width="2" data-tip="' + esc('<b>' + esc(p.t.name) + '</b> · ' + fmt(p.t.first, 2) + ' שנ׳') + '"/>';
+    });
+    el.innerHTML = s + '</svg>';
+  }
+
+  // Repeats: one lane per team on a shared axis.
+  function drawRepeats(el, data, classMean){
+    var W = el.clientWidth || 700, padX = 18, laneH = 34, top = 30;
+    var all = []; data.forEach(function(d){ d.trials.forEach(function(v){ all.push(v); }); });
+    var sc = scale(Math.min.apply(null, all), Math.max.apply(null, all), W < 520 ? 4 : 7);
+    function X(v){ return padX + (v - sc.lo) / (sc.hi - sc.lo) * (W - 2 * padX); }
+    var base = top + data.length * laneH + 4, H = base + 30;
+    var s = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="המדידות החוזרות של כל צוות" style="font-family:Heebo,system-ui,Arial,sans-serif">';
+    s += axis(sc, X, base, top);
+    data.forEach(function(d, i){
+      if (i) s += '<line x1="0" y1="' + (top + i * laneH) + '" x2="' + W + '" y2="' + (top + i * laneH) + '" stroke="#f3f5f9"/>';
+    });
+    if (S.showMeans && classMean !== null) {
+      s += '<line x1="' + X(classMean) + '" y1="' + (top - 4) + '" x2="' + X(classMean) + '" y2="' + base + '" stroke="#14233f" stroke-opacity=".55" stroke-width="1.5"/>';
+    }
+    data.forEach(function(d, i){
+      var y = top + i * laneH + laneH / 2;
+      var tipBase = '<b>' + esc(d.name) + '</b> · ';
+      s += '<line x1="' + X(d.min) + '" y1="' + y + '" x2="' + X(d.max) + '" y2="' + y + '" stroke="#0e8f88" stroke-opacity=".3" stroke-width="6" stroke-linecap="round" data-tip="' + esc(tipBase + 'מ־' + fmt(d.min, 2) + ' עד ' + fmt(d.max, 2) + ' שנ׳') + '"/>';
+      d.trials.forEach(function(v){
+        s += '<circle cx="' + X(v) + '" cy="' + y + '" r="6" fill="#0e8f88" stroke="#fff" stroke-width="2" data-tip="' + esc(tipBase + fmt(v, 2) + ' שנ׳') + '"/>';
+      });
+      if (S.showMeans) {
+        var m = X(d.mean);
+        s += '<path d="M' + m + ' ' + (y - 8) + ' L' + (m + 7) + ' ' + y + ' L' + m + ' ' + (y + 8) + ' L' + (m - 7) + ' ' + y + ' Z" fill="none" stroke="#14233f" stroke-width="2" data-tip="' + esc(tipBase + 'ממוצע ' + fmt(d.mean, 3) + ' שנ׳') + '"/>';
+      }
+    });
+    el.innerHTML = s + '</svg>';
+    // The class-mean label gets its own band above the lanes and is kept inside the plot.
+    if (S.showMeans && classMean !== null) {
+      var pill = document.createElement('div');
+      pill.className = 'meanpill';
+      pill.textContent = 'ממוצע כיתתי ' + fmt(classMean, 2) + ' שנ׳';
+      el.appendChild(pill);
+      var w = pill.offsetWidth, left = X(classMean) - w / 2;
+      pill.style.left = Math.max(0, Math.min(W - w, left)) + 'px';
+    }
+  }
+
+  function renderRepeats(){
+    var data = visibleTeams().filter(function(t){ return t.trials && t.trials.length; });
+    var h = '';
+    if (!data.length) {
+      $('view').innerHTML = '<section class="panel"><div class="phead"><div class="ptitle"><h2>המדידות החוזרות של כל צוות</h2></div></div><div class="empty">עדיין אין מדידות חוזרות. החלק הזה יתמלא כשהצוותים ישלחו את החזרות.</div></section>';
+      return;
+    }
+    data.sort(function(a, b){ return a.mean - b.mean; });
+    var classMean = data.reduce(function(a, d){ return a + d.mean; }, 0) / data.length;
+    var meanSpread = data.reduce(function(a, d){ return a + (d.max - d.min); }, 0) / data.length;
+    h += '<div class="tiles"><div class="tile"><div class="l">צוותים ששלחו חזרות</div><div class="v">' + data.length + '</div></div>' +
+         (S.showMeans ? '<div class="tile"><div class="l">ממוצע כיתתי</div><div class="v">' + fmt(classMean, 3) + ' <small>שנ׳</small></div></div>' : '') +
+         '<div class="tile"><div class="l">פיזור ממוצע (הגדול פחות הקטן)</div><div class="v">' + fmt(meanSpread, 3) + ' <small>שנ׳</small></div></div></div>';
+    h += '<section class="panel"><div class="phead"><div class="ptitle"><h2>המדידות החוזרות של כל צוות</h2><p>שורה לכל צוות, על אותו ציר זמן — כדי להשוות את הפיזור.</p></div>' +
+         '<label class="toggle"><input type="checkbox"' + (S.showMeans ? ' checked' : '') + ' onchange="S.showMeans=this.checked;render()">הצגת ממוצעים</label></div>' +
+         '<div class="key">' +
+           '<span><svg width="14" height="14"><circle cx="7" cy="7" r="5" fill="#0e8f88"/></svg>מדידה בודדת</span>' +
+           '<span><svg width="30" height="14"><line x1="4" y1="7" x2="26" y2="7" stroke="#0e8f88" stroke-opacity=".3" stroke-width="6" stroke-linecap="round"/></svg>מהערך הקטן ביותר עד הגדול ביותר</span>' +
+           (S.showMeans ? '<span><svg width="16" height="16"><path d="M8 1 L15 8 L8 15 L1 8 Z" fill="none" stroke="#14233f" stroke-width="2"/></svg>ממוצע הצוות</span>' : '') +
+         '</div>' +
+         '<div class="rep"><div class="names" style="padding-top:30px">' + data.map(function(d){ return '<div title="' + esc(d.name) + '">' + esc(d.name || 'ללא שם') + '</div>'; }).join('') + '</div>' +
+         '<div><div class="plot" id="repplot"></div><div class="axis-title">זמן הנפילה (שניות)</div></div></div></section>';
+    $('view').innerHTML = h;
+    drawRepeats($('repplot'), data, classMean);
+  }
+
+  // ---------- table ----------
+  function tableRows(){
+    return visibleTeams().map(function(t){
+      var tr = t.trials || [];
+      return [t.name, t.cls, t.first === null ? '' : t.first, t.predict === 'yes' ? 'כן' : t.predict === 'no' ? 'לא' : '', t.reason,
+              tr[0] || '', tr[1] || '', tr[2] || '', tr[3] || '', tr[4] || '', t.notes];
+    });
+  }
+  var TABLE_HEAD = ['צוות', 'כיתה', 'מדידה ראשונה (שנ׳)', 'ציפייה', 'נימוק', 'חזרה 1', 'חזרה 2', 'חזרה 3', 'חזרה 4', 'חזרה 5', 'הערות'];
+  function renderTable(){
+    var rows = tableRows();
+    var h = '<section class="panel"><div class="phead"><div class="ptitle"><h2>טבלת נתונים</h2><p>שורה לכל צוות. הקובץ שיורד נפתח ב‑Excel וב‑Google Sheets.</p></div>' +
+            '<button class="csv" onclick="exportCsv()">הורדת CSV</button></div>';
+    if (!rows.length) h += '<div class="empty">עדיין אין נתונים.</div>';
+    else {
+      h += '<div class="tablewrap"><table><tr>' + TABLE_HEAD.map(function(c){ return '<th>' + c + '</th>'; }).join('') + '</tr>' +
+        rows.map(function(r){
+          return '<tr>' + r.map(function(c, i){ return '<td' + ((i === 2 || (i >= 5 && i <= 9)) ? ' class="n"' : '') + '>' + esc(c) + '</td>'; }).join('') + '</tr>';
+        }).join('') + '</table></div>';
+    }
+    $('view').innerHTML = h + '</section>';
+  }
+  function exportCsv(){
+    var rows = [TABLE_HEAD].concat(tableRows());
+    var csv = rows.map(function(r){
+      return r.map(function(c){
+        c = (c === null || c === undefined) ? '' : String(c);
+        return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c;
+      }).join(',');
+    }).join('\r\n');
+    var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });   // BOM keeps Hebrew readable in Excel
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'falling-object-class.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  // ---------- tooltip ----------
+  var tip = $('tip');
+  document.addEventListener('mousemove', function(e){
+    var t = e.target && e.target.getAttribute ? e.target.getAttribute('data-tip') : null;
+    if (!t) { tip.style.display = 'none'; return; }
+    tip.innerHTML = t; tip.style.display = 'block';
+    var w = tip.offsetWidth, x = e.clientX - w / 2;
+    tip.style.left = Math.max(6, Math.min(window.innerWidth - w - 6, x)) + 'px';
+    tip.style.top = (e.clientY - tip.offsetHeight - 14) + 'px';
+  });
+  var rz = null;
+  window.addEventListener('resize', function(){ clearTimeout(rz); rz = setTimeout(function(){ if (S.sig) render(); }, 150); });
+
+  // ---------- demo data (only when the page is opened outside the platform) ----------
+  function demoData(){
+    var H = ['חותמת זמן','צוות','כיתה','t1','t2','t3','t4','t5','הערות','ציפייה','נימוק','שלב','מזהה צוות'];
+    var T = [
+      ['נועה ויואב', 0.47, 'לא', 'קשה ללחוץ על הסטופר בדיוק ברגע שהכדור פוגע ברצפה', [0.47,0.52,0.41,0.55,0.49]],
+      ['תמר ועידו', 0.52, 'כן', 'זה אותו כדור ואותו גובה, אז הזמן צריך לצאת אותו דבר', [0.52,0.50,0.58,0.47,0.53]],
+      ['מאיה ואורי', 0.39, 'לא', 'לא בטוח ששחררנו בדיוק מגובה מטר', [0.39,0.45,0.36,0.48,0.42]],
+      ['שירה ודניאל', 0.61, 'לא', 'זמן התגובה שלנו משתנה מפעם לפעם', [0.61,0.44,0.57,0.66,0.50]],
+      ['יעל ואיתי', 0.44, 'כן', 'הגובה לא השתנה, ולכן גם זמן הנפילה לא ישתנה', [0.44,0.46,0.43,0.47,0.45]],
+      ['רוני ועומר', 0.52, 'לא', 'מי שמשחרר ומי שמודד לא תמיד מתואמים', [0.52,0.60,0.49,0.56,0.63]],
+      ['הילה ונדב', 0.55, 'לא', 'כל פעם לוחצים קצת מוקדם או קצת מאוחר', null],
+      ['ליה ואלון', 0.47, 'כן', 'לפי הפיזיקה, מאותו גובה נופלים באותו זמן', [0.47,0.51,0.40,0.46,0.54]],
+      ['עדי ויונתן', 0.42, 'לא', 'אולי הפעם הכדור יקבל דחיפה קטנה בשחרור', [0.42,0.50,0.47,0.38,0.45]],
+      ['מיכל ואסף', 0.58, 'לא', '', null],
+      ['גל ושחר', 0.49, 'כן', 'אם נמדוד טוב נקבל אותו מספר', null],
+      ['אביגיל ורועי', 0.36, 'לא', 'הסטופר בטלפון מגיב לאט, וגם אנחנו', [0.36,0.48,0.44,0.52,0.40]]
+    ];
+    var rows = [H];
+    T.forEach(function(t, i){
+      var id = 'demo' + i;
+      if (!GUIDED) { if (t[4]) rows.push(['', t[0], 'י׳3'].concat(t[4].map(String)).concat(['', '', '', '', ''])); return; }
+      rows.push(['', t[0], 'י׳3', String(t[1]), '', '', '', '', '', '', '', 'מדידה ראשונה', id]);
+      rows.push(['', t[0], 'י׳3', '', '', '', '', '', '', t[2], t[3], 'ציפייה', id]);
+      if (t[4]) rows.push(['', t[0], 'י׳3'].concat(t[4].map(String)).concat(['', '', '', 'חזרות', id]));
+    });
+    return { rows: rows, board: [] };
+  }
+
+  if (GUIDED) $('kick').textContent = 'חוקרים פיזיקה · לוח הכיתה · מהלך פעילות מובנה';
+  if (DEMO) { $('demoNote').style.display = 'block'; $('liveBtn').style.display = 'none'; }
+  load(true);
+  schedule();
+</script>
+</body>
+</html>

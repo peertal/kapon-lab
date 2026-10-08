@@ -34,6 +34,7 @@
   .st.done .n{background:var(--accent);color:#06312e}
   .steps .ln{flex:1;height:2px;background:#dfe6ef;margin:0 8px;min-width:12px}
   .steps .ln.done{background:var(--accent)}
+  @media (max-width:420px){ .st{font-size:12.5px;gap:5px} .st .n{width:24px;height:24px;font-size:12.5px} .steps .ln{margin:0 4px;min-width:6px} }
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin-top:16px;box-shadow:0 2px 10px rgba(20,35,63,.05)}
   .card h2{font-size:19px;font-weight:800;color:var(--navy);margin-bottom:8px}
@@ -110,7 +111,8 @@
   <nav class="steps" id="steps" aria-label="שלבי הפעילות">
     <button class="st" id="st1" onclick="goTo(1)"><span class="n">1</span>רקע</button><span class="ln" id="ln1"></span>
     <button class="st" id="st2" onclick="goTo(2)"><span class="n">2</span>מדידה</button><span class="ln" id="ln2"></span>
-    <button class="st" id="st3" onclick="goTo(3)"><span class="n">3</span>ציפייה</button>
+    <button class="st" id="st3" onclick="goTo(3)"><span class="n">3</span>ציפייה</button><span class="ln" id="ln3"></span>
+    <button class="st" id="st4" onclick="goTo(4)"><span class="n">4</span>חזרות</button>
   </nav>
 
   <!-- 1 · background -->
@@ -261,19 +263,21 @@
 
   // ---------- navigation ----------
   function goTo(n){
-    if (n > 2 && st.t1 === null) n = 2;            // no skipping ahead of the measurement
-    if (n > 3 && !st.predict) n = 3;
+    if (isLive()) {                                // in a real class: no skipping ahead
+      if (n > 2 && st.t1 === null) n = 2;
+      if (n > 3 && !st.predict) n = 3;
+    }                                              // in the preview every step, including the repeats, is open
     st.step = n; save(); show();
     window.scrollTo(0, 0);
   }
   function show(){
     for (var i = 1; i <= 4; i++) el('v' + i).classList.toggle('hidden', i !== st.step);
-    var reached = st.predict && st.sent.predict ? 4 : st.t1 !== null ? 3 : 2;
-    for (var j = 1; j <= 3; j++) {
+    var reached = !isLive() ? 4 : st.predict && st.sent.predict ? 4 : st.t1 !== null ? 3 : 2;
+    for (var j = 1; j <= 4; j++) {
       var b = el('st' + j);
-      b.className = 'st' + (j === st.step ? ' on' : '') + ((j < st.step || (st.step === 4)) ? ' done' : '');
+      b.className = 'st' + (j === st.step ? ' on' : '') + (j < st.step ? ' done' : '');
       b.disabled = j > reached;
-      if (j < 3) el('ln' + j).className = 'ln' + (j < st.step ? ' done' : '');
+      if (j < 4) el('ln' + j).className = 'ln' + (j < st.step ? ' done' : '');
     }
     el('student').value = st.student || '';
     el('cls').value = st.cls || '';
@@ -281,10 +285,10 @@
     el('reason').value = st.reason || ''; count();
     paintPick();
     if (st.step === 4) {
-      el('sumName').textContent = st.student + (st.cls ? ' · ' + st.cls : '');
-      el('sumT').textContent = st.t1 + ' שניות';
-      el('sumP').textContent = st.predict === 'yes' ? 'כן — נמדוד אותו זמן' : 'לא — נמדוד זמן אחר';
-      if (st.sent.repeats) openRepeats();
+      el('sumName').textContent = st.student ? st.student + (st.cls ? ' · ' + st.cls : '') : '—';
+      el('sumT').textContent = st.t1 !== null ? st.t1 + ' שניות' : '—';
+      el('sumP').textContent = st.predict === 'yes' ? 'כן — נמדוד אותו זמן' : st.predict === 'no' ? 'לא — נמדוד זמן אחר' : '—';
+      if (st.sent.repeats || !isLive()) openRepeats();   // preview: the repeats form is open straight away
     }
   }
 
